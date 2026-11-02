@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Centro de Análisis Territorial · Antioquia + Colombia</title>
+<style>
+:root{--bg:#05080f}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  /* Opcional: sube una imagen "fondo.jpg" junto a este archivo y se verá detrás */
+  background:linear-gradient(rgba(3,7,14,.86),rgba(3,7,14,.86)),url(fondo.jpg) center/cover no-repeat,radial-gradient(ellipse at 50% 25%,#0f1d30,#05080f 70%);
+  color:#cfe9f5;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+header{text-align:center;padding:14px 12px 4px}
+header .ttl{letter-spacing:.35em;font-size:14px;font-weight:600;color:#9fe6ff;text-shadow:0 0 12px #4fd8ff}
+header .sub{font-size:11px;letter-spacing:.2em;color:#7d98aa;margin-top:3px}
+.stage{flex:1;min-height:640px;display:grid;grid-template-columns:1fr 110px 1fr;padding:12px 22px 10px}
+.gap{pointer-events:none}
+.panel{--rgb:79,216,255;min-height:0;display:flex;flex-direction:column;border:1px solid rgba(var(--rgb),.65);
+  border-radius:14px;background:rgba(8,20,34,.55);backdrop-filter:blur(3px);
+  box-shadow:0 0 24px rgba(var(--rgb),.25),inset 0 0 40px rgba(var(--rgb),.08);overflow:hidden}
+.panel.col{--rgb:255,183,77;background:rgba(30,20,8,.5)}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid rgba(var(--rgb),.3)}
+.ph h2{font-size:13px;letter-spacing:.22em;font-weight:600;color:rgb(var(--rgb));text-shadow:0 0 10px rgba(var(--rgb),.8)}
+.live{font-size:10px;letter-spacing:.15em;color:rgb(var(--rgb));animation:bl 1.4s infinite}
+@keyframes bl{50%{opacity:.25}}
+.map{flex:1.15;position:relative;min-height:220px}
+.map canvas{position:absolute;inset:0;width:100%;height:100%}
+.sheet{flex:1;min-height:0;display:flex;flex-direction:column;border-top:1px solid rgba(var(--rgb),.3);background:rgba(0,0,0,.28)}
+.fbar{height:26px;line-height:26px;padding:0 10px;font:12px ui-monospace,Menlo,Consolas,monospace;color:#cfe;border-bottom:1px solid rgba(var(--rgb),.25);white-space:nowrap;overflow:hidden}
+.fbar b{color:rgb(var(--rgb));margin-right:8px;font-style:italic}
+.fbar em{color:#fff;font-style:normal;text-shadow:0 0 8px rgb(var(--rgb))}
+.cols,.row{display:grid;grid-template-columns:38px 1.7fr repeat(5,1fr)}
+.cols{height:38px;border-bottom:1px solid rgba(var(--rgb),.4);background:rgba(var(--rgb),.1);font:600 11px ui-monospace,Menlo,Consolas,monospace}
+.cols span{padding:3px 6px;line-height:15px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cols i{display:block;font-size:9px;opacity:.6;font-style:normal;color:rgb(var(--rgb))}
+.vp{flex:1;min-height:0;overflow:hidden;position:relative;
+  -webkit-mask-image:linear-gradient(transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(transparent,#000 12%,#000 88%,transparent)}
+.inner{will-change:transform}
+.row{height:24px;line-height:24px;font:12px ui-monospace,Menlo,Consolas,monospace;border-bottom:1px solid rgba(var(--rgb),.1)}
+.row span{padding:0 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.n{text-align:right}
+.rn{color:rgba(var(--rgb),.55);text-align:center;background:rgba(var(--rgb),.06)}
+.row.sel{background:rgba(var(--rgb),.2);box-shadow:inset 3px 0 0 rgb(var(--rgb))}
+.sheet[data-hl="1"] .c1,.sheet[data-hl="2"] .c2,.sheet[data-hl="3"] .c3,.sheet[data-hl="4"] .c4,.sheet[data-hl="5"] .c5{background:rgba(var(--rgb),.12)}
+.fl{animation:fl .8s}
+@keyframes fl{0%{background:rgba(var(--rgb),.85);color:#fff}100%{background:transparent}}
+.stat{height:22px;line-height:22px;padding:0 10px;font:11px ui-monospace,Menlo,Consolas,monospace;color:rgba(var(--rgb),.85);border-top:1px solid rgba(var(--rgb),.25)}
+footer{text-align:center;padding:8px 10px 12px;font-size:12px;color:#7d98aa;letter-spacing:.06em}
+#fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:5}
+@media(max-width:900px){
+  .stage{grid-template-columns:1fr;grid-template-rows:auto 70px auto;padding:10px}
+  .panel{min-height:620px}
+}
+</style>
+<!--CFG-->
+</head>
+<body>
+<header>
+  <div class="ttl">CENTRO DE ANÁLISIS TERRITORIAL</div>
+  <div class="sub">CÓMPUTO EN VIVO · DATOS SINTÉTICOS</div>
+</header>
+
+<main class="stage">
+  <section class="panel ant" id="pA">
+    <div class="ph"><h2>DEPARTAMENTO DE ANTIOQUIA</h2><span class="live">● EN VIVO</span></div>
+    <div class="map"><canvas id="cA"></canvas></div>
+    <div class="sheet" id="sA"><div class="fbar"></div><div class="cols"></div><div class="vp"><div class="inner"></div></div><div class="stat"></div></div>
+  </section>
+  <div class="gap"></div>
+  <section class="panel col" id="pC">
+    <div class="ph"><h2>REPÚBLICA DE COLOMBIA</h2><span class="live">● EN VIVO</span></div>
+    <div class="map"><canvas id="cC"></canvas></div>
+    <div class="sheet" id="sC"><div class="fbar"></div><div class="cols"></div><div class="vp"><div class="inner"></div></div><div class="stat"></div></div>
+  </section>
+</main>
+
+<footer>Diseño Vibe Coding por Ing. Hernán Quiroz</footer>
+<canvas id="fx"></canvas>
+
+<script>
+(()=>{
+const CFG=Object.assign({speed:1,rate:1},window.__CFG__||{});
+const R=Math.random, ROWH=24;
+
+/* ---------- Geografía aproximada (lon, lat) ---------- */
+const COL_POLY=[[-77.35,8.67],[-76.9,8.1],[-76.0,9.0],[-75.6,10.0],[-75.2,10.7],[-74.4,11.1],[-73.4,11.3],[-72.4,11.9],[-71.3,12.4],[-71.9,11.6],[-72.7,11.1],[-72.5,10.4],[-72.9,9.6],[-72.4,8.9],[-72.5,8.2],[-72.0,7.6],[-71.9,7.0],[-70.9,7.0],[-70.0,6.9],[-69.4,6.1],[-67.8,6.2],[-67.4,5.4],[-67.6,4.5],[-67.8,3.2],[-67.3,2.0],[-67.1,1.2],[-68.2,1.8],[-69.4,1.1],[-69.9,0.6],[-70.0,-0.2],[-69.4,-1.0],[-69.9,-2.0],[-69.9,-4.2],[-70.8,-3.8],[-71.7,-2.2],[-72.8,-2.4],[-73.6,-1.8],[-74.8,-1.0],[-75.5,-0.2],[-76.4,0.3],[-77.4,0.4],[-78.0,1.0],[-78.8,1.5],[-78.5,2.4],[-77.9,2.7],[-77.1,3.9],[-77.4,4.8],[-77.5,6.0],[-77.8,7.1]];
+const ANT_POLY=[[-76.361,8.898],[-76.54,8.797],[-76.602,8.737],[-76.791,8.694],[-76.841,8.644],[-76.831,8.608],[-76.753,8.55],[-76.684,8.431],[-76.691,8.32],[-76.648,8.073],[-76.671,7.955],[-76.731,7.929],[-76.946,7.958],[-77.083,7.841],[-77.076,7.808],[-76.955,7.648],[-76.851,7.595],[-76.756,7.518],[-76.648,7.35],[-76.481,7.245],[-76.435,7.16],[-76.437,7.083],[-76.482,6.98],[-76.679,7.006],[-76.745,6.986],[-76.756,6.955],[-76.736,6.887],[-76.742,6.837],[-76.891,6.77],[-76.907,6.742],[-76.903,6.691],[-76.866,6.59],[-76.748,6.444],[-76.742,6.273],[-76.65,6.092],[-76.421,6.072],[-76.301,6.109],[-76.215,6.115],[-76.181,6.099],[-76.144,5.95],[-76.031,5.872],[-76.047,5.744],[-76.019,5.582],[-75.946,5.454],[-75.837,5.423],[-75.69,5.483],[-75.544,5.464],[-75.506,5.505],[-75.512,5.624],[-75.467,5.649],[-75.349,5.635],[-75.271,5.456],[-75.218,5.434],[-75.103,5.516],[-75.045,5.628],[-74.951,5.686],[-74.865,5.705],[-74.771,5.666],[-74.737,5.686],[-74.633,5.864],[-74.607,5.991],[-74.638,6.085],[-74.628,6.128],[-74.442,6.376],[-74.438,6.537],[-74.225,6.698],[-74.125,6.825],[-74.0,6.931],[-74.04,7.142],[-74.058,7.163],[-74.1,7.151],[-74.289,6.978],[-74.341,6.971],[-74.395,6.993],[-74.434,7.134],[-74.436,7.26],[-74.461,7.278],[-74.538,7.286],[-74.612,7.39],[-74.584,7.551],[-74.511,7.646],[-74.561,7.732],[-74.568,7.834],[-74.642,7.945],[-74.822,8.088],[-74.857,8.081],[-74.951,8.009],[-75.14,7.982],[-75.209,7.956],[-75.331,7.802],[-75.4,7.747],[-75.544,7.556],[-75.579,7.537],[-75.696,7.529],[-75.795,7.368],[-76.215,7.39],[-76.273,7.411],[-76.392,7.604],[-76.385,7.749],[-76.329,7.92],[-76.206,7.928],[-76.176,7.947],[-76.198,7.983],[-76.287,8.011],[-76.312,8.073],[-76.206,8.303],[-76.115,8.389],[-76.098,8.431],[-76.159,8.627],[-76.249,8.699],[-76.299,8.781],[-76.31,8.873]];
+const mk=a=>({n:a[0],lon:a[1],lat:a[2],pop:a[3],lab:!!a[4]});
+const ANT_PTS=[["Medellín",-75.57,6.25,2600,1],["Bello",-75.56,6.34,520],["Envigado",-75.58,6.17,240],["Itagüí",-75.6,6.18,280],["Rionegro",-75.38,6.15,140,1],["Apartadó",-76.63,7.88,200,1],["Turbo",-76.625,8.043,170],["Caucasia",-75.264,7.883,120,1],["Puerto Berrío",-74.450,6.509,50],["Santa Fe de Ant.",-75.83,6.56,25],["Jardín",-75.82,5.6,14],["Yarumal",-75.4,6.96,45],["Segovia",-74.7,7.08,40],["Sonsón",-75.31,5.71,35],["Andes",-75.88,5.66,47],["Carepa",-76.65,7.76,60],["Necoclí",-76.682,8.344,70],["Santa Rosa de Osos",-75.46,6.64,40],["Amalfi",-75.08,6.91,22]].map(mk);
+const COL_PTS=[["Bogotá",-74.07,4.71,8000,1],["Medellín",-75.57,6.25,2600,1],["Cali",-76.53,3.45,2300,1],["Barranquilla",-74.78,10.96,1300,1],["Cartagena",-75.5,10.39,1000],["Bucaramanga",-73.12,7.12,600],["Cúcuta",-72.5,7.89,700],["Pasto",-77.28,1.21,400],["Leticia",-69.94,-4.21,50],["Santa Marta",-74.2,11.24,500],["Villavicencio",-73.63,4.14,550],["Pereira",-75.69,4.81,480],["Manizales",-75.52,5.07,450],["Ibagué",-75.23,4.44,540],["Neiva",-75.28,2.93,360],["Quibdó",-76.66,5.69,130],["Montería",-75.88,8.75,500],["Popayán",-76.61,2.44,320],["Valledupar",-73.25,10.47,530],["Arauca",-70.76,7.09,90],["Yopal",-72.4,5.34,150],["Florencia",-75.61,1.61,170],["Mocoa",-76.65,1.15,45],["Mitú",-70.26,1.25,30]].map(mk);
+
+/* ---------- Mapa holográfico ---------- */
+class MapView{
+  constructor(cv,poly,pts,rgb,extra){
+    this.cv=cv;this.ctx=cv.getContext('2d');this.poly=poly;this.pts=pts;this.rgb=rgb;this.extra=extra||[];
+    this.pulse={};this.grid=[];this.W=0;this.H=0;
+    const lo=poly.map(p=>p[0]),la=poly.map(p=>p[1]);
+    this.b={x0:Math.min(...lo),x1:Math.max(...lo),y0:Math.min(...la),y1:Math.max(...la)};
+    new ResizeObserver(()=>this.resize()).observe(cv.parentElement);this.resize();
+  }
+  resize(){
+    const p=this.cv.parentElement,d=devicePixelRatio||1;
+    this.W=p.clientWidth;this.H=p.clientHeight;if(!this.W||!this.H)return;
+    this.cv.width=this.W*d;this.cv.height=this.H*d;this.ctx.setTransform(d,0,0,d,0,0);
+    const b=this.b,k=Math.cos((b.y0+b.y1)/2*Math.PI/180),pad=22,w=(b.x1-b.x0)*k,h=b.y1-b.y0;
+    this.k=k;this.s=Math.min((this.W-2*pad)/w,(this.H-2*pad)/h);
+    this.ox=(this.W-w*this.s)/2;this.oy=(this.H-h*this.s)/2;
+    const px=this.poly.map(q=>this.xy(q[0],q[1])),step=this.W>500?11:9;this.grid=[];
+    for(let x=0;x<this.W;x+=step)for(let y=0;y<this.H;y+=step)if(inside(px,x,y))this.grid.push({x,y,e:0});
+  }
+  xy(lon,lat){return [this.ox+(lon-this.b.x0)*this.k*this.s,this.oy+(this.b.y1-lat)*this.s]}
+  path(poly){const c=this.ctx;c.beginPath();poly.forEach((p,i)=>{const[x,y]=this.xy(p[0],p[1]);i?c.lineTo(x,y):c.moveTo(x,y)});c.closePath()}
+  draw(t){
+    const c=this.ctx,W=this.W,H=this.H,rgb=this.rgb;if(!W)return;
+    c.clearRect(0,0,W,H);
+    c.strokeStyle=`rgba(${rgb},.06)`;c.lineWidth=1;c.beginPath();
+    for(let x=0;x<W;x+=40){c.moveTo(x,0);c.lineTo(x,H)}for(let y=0;y<H;y+=40){c.moveTo(0,y);c.lineTo(W,y)}c.stroke();
+    this.path(this.poly);c.fillStyle=`rgba(${rgb},.07)`;c.fill();
+    const scan=((t*0.00008)%1.3-.15)*H,g=this.grid,n=Math.ceil(g.length*.006*CFG.rate);
+    for(let i=0;i<n;i++)g[Math.floor(R()*g.length)].e=1;
+    for(const q of g){
+      q.e*=.94;const dy=Math.abs(q.y-scan);
+      const a=.1+.85*q.e+(dy<20?.45*(1-dy/20):0);
+      c.fillStyle=`rgba(${rgb},${a.toFixed(2)})`;c.fillRect(q.x-1,q.y-1,2,2);
+    }
+    for(const e of this.extra){
+      this.path(e.poly);c.fillStyle=`rgba(${e.rgb},.22)`;c.fill();
+      c.save();c.shadowColor=`rgb(${e.rgb})`;c.shadowBlur=10;c.strokeStyle=`rgba(${e.rgb},.95)`;c.lineWidth=1.3;c.stroke();c.restore();
+    }
+    c.save();this.path(this.poly);c.shadowColor=`rgb(${rgb})`;c.shadowBlur=14;c.strokeStyle=`rgba(${rgb},.95)`;c.lineWidth=1.6;c.stroke();c.restore();
+    const gr=c.createLinearGradient(0,scan-16,0,scan+16);
+    gr.addColorStop(0,`rgba(${rgb},0)`);gr.addColorStop(.5,`rgba(${rgb},.22)`);gr.addColorStop(1,`rgba(${rgb},0)`);
+    c.fillStyle=gr;c.fillRect(0,scan-16,W,32);
+    c.font='10px ui-monospace,Menlo,Consolas,monospace';
+    for(const p of this.pts){
+      const[x,y]=this.xy(p.lon,p.lat),e=this.pulse[p.n]||0;
+      c.fillStyle=`rgba(${rgb},.95)`;c.beginPath();c.arc(x,y,p.lab?2.8:1.9,0,7);c.fill();
+      if(e>.03){c.strokeStyle=`rgba(${rgb},${e.toFixed(2)})`;c.lineWidth=1.3;c.beginPath();c.arc(x,y,3+(1-e)*18,0,7);c.stroke();this.pulse[p.n]=e*.95}
+      if(p.lab){c.fillStyle=`rgba(${rgb},.85)`;c.fillText(p.n,x+6,y-5)}
+    }
+    for(const e of this.extra)if(e.label){const[x,y]=this.xy(e.lon,e.lat);c.fillStyle=`rgba(${e.rgb},.95)`;c.fillText(e.label,x-22,y-12)}
+  }
+}
+function inside(poly,x,y){let r=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>y)!=(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])r=!r}return r}
+
+/* ---------- Hoja de cálculo animada ---------- */
+const f1=v=>v.toFixed(1),f2=v=>v.toFixed(2),fi=v=>Math.round(v).toLocaleString('es-CO'),fs=v=>v;
+const SPEC_ANT={
+  cols:["Municipio","Pobl. (mil)","MWh","Temp °C","NDVI","kWh/hab"],
+  fmt:[fs,f1,fi,f1,f2,fi],
+  lim:{1:[1,1e5],2:[1,1e6],3:[12,34],4:[.1,.95]},
+  make:p=>{const v=[p.n,p.pop*(.96+R()*.08),p.pop*(2.5+R()*1.6),14+R()*16,.25+R()*.65,0];SPEC_ANT.calc(v);return v},
+  calc:v=>{v[5]=v[2]/v[1]*480}
+};
+const SPEC_COL={
+  cols:["Ciudad","PIB idx","Dem. MW","Humed. %","Alertas","Score"],
+  fmt:[fs,f1,f1,f1,fi,f1],
+  lim:{1:[10,300],2:[1,5000],3:[20,100],4:[0,12]},int:[4],
+  make:p=>{const v=[p.n,60+R()*80,p.pop/10*(.9+R()*.4),40+R()*55,Math.floor(R()*9),0];SPEC_COL.calc(v);return v},
+  calc:v=>{v[5]=Math.max(0,v[1]*.5+v[2]*.05-v[4]*3+(v[3]-60)*.2)}
+};
+class Sheet{
+  constructor(root,spec,pts,map){
+    this.root=root;this.spec=spec;this.pts=pts;this.map=map;this.rows=[];this.off=0;this.nid=0;this.sel=null;this.fn=0;this.cnt=0;this.total=0;
+    this.fbar=root.querySelector('.fbar');this.vp=root.querySelector('.vp');this.inner=root.querySelector('.inner');this.stat=root.querySelector('.stat');
+    root.querySelector('.cols').innerHTML='<span class="rn"></span>'+spec.cols.map((n,i)=>`<span class="c${i}${i?' n':''}"><i>${String.fromCharCode(65+i)}</i>${n}</span>`).join('');
+    setInterval(()=>this.mutate(),Math.max(30,110/CFG.rate));
+    setInterval(()=>this.formula(),1500/CFG.rate);
+    setInterval(()=>{this.stat.textContent=`⚙ ${this.cnt.toLocaleString('es-CO')} celdas/s  ·  ${this.total.toLocaleString('es-CO')} cálculos`;this.cnt=0},1000);
+  }
+  addRow(){
+    const p=this.pts[Math.floor(R()*this.pts.length)],v=this.spec.make(p),el=document.createElement('div');
+    el.className='row';const r={id:this.nid++,p,v,el};
+    el.innerHTML=`<span class="rn">${r.id+2}</span>`+v.map((x,i)=>`<span class="c${i}${i?' n':''}">${this.spec.fmt[i](x)}</span>`).join('');
+    this.cnt+=6;this.total+=6;this.rows.push(r);this.inner.appendChild(el);
+  }
+  mutate(){
+    const r=this.rows[Math.floor(R()*this.rows.length)];if(!r)return;
+    const s=this.spec,c=1+Math.floor(R()*4),[lo,hi]=s.lim[c];
+    r.v[c]=(s.int&&s.int.includes(c))?Math.round(r.v[c]+(R()<.5?-1:1)):r.v[c]*(1+(R()-.5)*.12);
+    r.v[c]=Math.min(hi,Math.max(lo,r.v[c]));s.calc(r.v);
+    for(const k of [c,5]){const el=r.el.children[k+1];el.textContent=s.fmt[k](r.v[k]);el.classList.remove('fl');void el.offsetWidth;el.classList.add('fl')}
+    this.cnt+=2;this.total+=2;
+  }
+  formula(){
+    const vis=Math.ceil(this.vp.clientHeight/ROWH),rs=this.rows.slice(0,Math.max(1,vis));if(!rs.length)return;
+    const c=1+(this.fn%5),f=['SUMA','PROMEDIO','MAX','MIN'][Math.floor(this.fn/5)%4];this.fn++;
+    const xs=rs.map(r=>r.v[c]);
+    const res=f=='SUMA'?xs.reduce((a,b)=>a+b,0):f=='PROMEDIO'?xs.reduce((a,b)=>a+b,0)/xs.length:f=='MAX'?Math.max(...xs):Math.min(...xs);
+    const L=String.fromCharCode(65+c);this.root.dataset.hl=c;
+    this.fbar.innerHTML=`<b>fx</b> =${f}(${L}${rs[0].id+2}:${L}${rs[rs.length-1].id+2}) <em>→ ${this.spec.fmt[c](res)}</em>`;this.total++;
+  }
+  step(dt){
+    const need=Math.ceil(this.vp.clientHeight/ROWH)+3;
+    while(this.rows.length<need)this.addRow();
+    this.off+=ROWH*0.0028*dt*CFG.speed;
+    while(this.off>=ROWH){const r=this.rows.shift();r.el.remove();this.off-=ROWH;this.addRow()}
+    this.inner.style.transform=`translateY(${-this.off}px)`;
+    const s=this.rows[Math.floor((this.off+this.vp.clientHeight*.5)/ROWH)];
+    if(s&&s!==this.sel){this.sel&&this.sel.el.classList.remove('sel');this.sel=s;s.el.classList.add('sel');this.map.pulse[s.p.n]=1}
+  }
+}
+
+/* ---------- Montaje ---------- */
+const pA=document.getElementById('pA'),pC=document.getElementById('pC');
+const mapA=new MapView(document.getElementById('cA'),ANT_POLY,ANT_PTS,'79,216,255');
+const mapC=new MapView(document.getElementById('cC'),COL_POLY,COL_PTS,'255,183,77',[{poly:ANT_POLY,rgb:'79,216,255',label:'ANTIOQUIA',lon:-75.6,lat:7.1}]);
+const shA=new Sheet(document.getElementById('sA'),SPEC_ANT,ANT_PTS,mapA);
+const shC=new Sheet(document.getElementById('sC'),SPEC_COL,COL_PTS,mapC);
+
+/* ---------- Flujo de datos entre las dos pantallas ---------- */
+const fx=document.getElementById('fx'),fc=fx.getContext('2d');
+function fxResize(){const d=devicePixelRatio||1;fx.width=innerWidth*d;fx.height=innerHeight*d;fc.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',fxResize);fxResize();
+const TOK=["=SUMA()","12.4","A7","0x3F","▲","NDVI","∑","B12","3.14","=SI()","87%","C5:C20","kWh","μ","σ²","1011"];
+let packets=[],tokens=[],lastPk=0;
+const bez=(t,A,B,C)=>[(1-t)*(1-t)*A[0]+2*(1-t)*t*B[0]+t*t*C[0],(1-t)*(1-t)*A[1]+2*(1-t)*t*B[1]+t*t*C[1]];
+function fxDraw(t,dt){
+  fc.clearRect(0,0,innerWidth,innerHeight);
+  if(!mapA.W||!mapC.W)return;
+  const a=pA.getBoundingClientRect(),b=pC.getBoundingClientRect(),ra=mapA.cv.getBoundingClientRect(),rb=mapC.cv.getBoundingClientRect();
+  const st=innerWidth<=900,m1=mapA.xy(-75.57,6.25),m2=mapC.xy(-75.57,6.25);
+  const P0=[ra.left+m1[0],ra.top+m1[1]],P2=[rb.left+m2[0],rb.top+m2[1]];
+  const P1=st?[Math.max(P0[0],P2[0])+110,(P0[1]+P2[1])/2]:[(P0[0]+P2[0])/2,Math.min(P0[1],P2[1])-130];
+  // curva Medellín (Antioquia) ↔ Medellín en el mapa de Colombia
+  const g=fc.createLinearGradient(P0[0],P0[1],P2[0],P2[1]);g.addColorStop(0,'rgba(79,216,255,.55)');g.addColorStop(1,'rgba(255,183,77,.55)');
+  fc.save();fc.setLineDash([6,8]);fc.lineDashOffset=-t*.03;fc.strokeStyle=g;fc.lineWidth=1.4;
+  fc.beginPath();fc.moveTo(P0[0],P0[1]);fc.quadraticCurveTo(P1[0],P1[1],P2[0],P2[1]);fc.stroke();fc.restore();
+  // paquetes de datos
+  if(t-lastPk>380/CFG.rate){lastPk=t;packets.push({t:0,v:.00035+R()*.0003,dir:R()<.7?1:-1})}
+  packets=packets.filter(p=>{
+    p.t+=p.v*dt*CFG.speed;
+    if(p.t>=1){(p.dir>0?mapC:mapA).pulse['Medellín']=1;return false}
+    for(let i=0;i<8;i++){
+      const tt=Math.max(0,p.t-i*.012),q=bez(p.dir>0?tt:1-tt,P0,P1,P2),pc=p.dir>0?tt:1-tt;
+      fc.fillStyle=`rgba(${79+176*pc|0},${216-33*pc|0},${255-178*pc|0},${(1-i/8)*.9})`;
+      fc.beginPath();fc.arc(q[0],q[1],3.4-i*.3,0,7);fc.fill();
+    }
+    return true;
+  });
+  // fichas de cálculo cruzando el espacio entre pantallas
+  if(R()<dt*.0045*CFG.rate&&tokens.length<80){
+    const dir=R()<.7?1:-1;
+    tokens.push(st?{t:0,dur:1400+R()*1600,dir,x:a.left+30+R()*(a.width-60),y0:a.bottom,y1:b.top,txt:TOK[Math.floor(R()*TOK.length)],v:1}
+      :{t:0,dur:1400+R()*1600,dir,y:a.top+50+R()*(a.height-100),x0:a.right,x1:b.left,txt:TOK[Math.floor(R()*TOK.length)]});
+  }
+  fc.font='11px ui-monospace,Menlo,Consolas,monospace';
+  tokens=tokens.filter(k=>{
+    k.t+=dt;const p=k.t/k.dur;if(p>=1)return false;
+    const pc=k.dir>0?p:1-p,al=Math.sin(Math.PI*p);
+    const x=st?k.x:(k.x0+(k.x1-k.x0)*pc),y=st?(k.y0+(k.y1-k.y0)*pc):k.y;
+    fc.fillStyle=`rgba(${79+176*pc|0},${216-33*pc|0},${255-178*pc|0},${al.toFixed(2)})`;fc.fillText(k.txt,x,y);
+    return true;
+  });
+}
+
+let last=performance.now();
+function loop(t){
+  const dt=Math.min(50,t-last);last=t;
+  shA.step(dt);shC.step(dt);mapA.draw(t);mapC.draw(t);fxDraw(t,dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
