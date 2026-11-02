@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -54,6 +55,12 @@ footer{text-align:center;padding:8px 10px 12px;font-size:12px;color:#7d98aa;lett
   .stage{grid-template-columns:1fr;grid-template-rows:auto 70px auto;padding:10px}
   .panel{min-height:620px}
 }
+#audio{position:fixed;right:16px;bottom:14px;z-index:10;display:flex;gap:10px;align-items:center;background:rgba(8,20,34,.72);backdrop-filter:blur(4px);border:1px solid rgba(79,216,255,.55);border-radius:22px;padding:6px 14px;font:12px ui-monospace,Menlo,Consolas,monospace;color:#9fe6ff;box-shadow:0 0 14px rgba(79,216,255,.25)}
+#audio button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;letter-spacing:.08em}
+#audio button:hover{text-shadow:0 0 8px #4fd8ff}
+#audio input{width:80px;accent-color:#4fd8ff}
+#audio.on{border-color:#ffb74d;color:#ffd9a0}
+@media(max-width:900px){#audio{right:8px;bottom:8px}}
 </style>
 <!--CFG-->
 </head>
@@ -78,6 +85,7 @@ footer{text-align:center;padding:8px 10px 12px;font-size:12px;color:#7d98aa;lett
 </main>
 
 <footer>Diseño Vibe Coding por Ing. Hernán Quiroz</footer>
+<div id="audio"><button id="mus" type="button">♪ MÚSICA: OFF</button><input id="vol" type="range" min="0" max="1" step="0.01" value="0.6" aria-label="Volumen"></div>
 <canvas id="fx"></canvas>
 
 <script>
@@ -264,6 +272,66 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+/* ---------- Música electrónica generativa (Web Audio, sin archivos) ---------- */
+(()=>{
+const btn=document.getElementById('mus'),vol=document.getElementById('vol'),box=document.getElementById('audio');
+const BPM=118,S16=60/BPM/4,ROOTS=[55,43.65,65.41,49],CH=[[0,3,7,12],[0,4,7,12],[0,4,7,12],[0,4,7,12]],SEQ=[0,2,1,3,2,1,3,2];
+let ctx,master,delay,noiseBuf,timer,step=0,next=0,on=false;
+const fr=(f,s)=>f*Math.pow(2,s/12);
+function init(){
+  ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=ctx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;
+  master=ctx.createGain();master.gain.value=0;master.connect(comp);comp.connect(ctx.destination);
+  delay=ctx.createDelay(1);delay.delayTime.value=S16*3;
+  const fb=ctx.createGain();fb.gain.value=.38;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2800;
+  delay.connect(lp);lp.connect(fb);fb.connect(delay);lp.connect(master);
+  noiseBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);
+  const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+}
+function kick(t){const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';
+  o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);
+  g.gain.setValueAtTime(1,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);o.connect(g);g.connect(master);o.start(t);o.stop(t+.4);
+  document.body.dispatchEvent(new CustomEvent('beat'))}
+function noise(t,dur,type,freq,v){const s=ctx.createBufferSource();s.buffer=noiseBuf;
+  const f=ctx.createBiquadFilter();f.type=type;f.frequency.value=freq;const g=ctx.createGain();
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+dur+.05)}
+function bass(t,f,len){const o=ctx.createOscillator(),fl=ctx.createBiquadFilter(),g=ctx.createGain();
+  o.type='sawtooth';o.frequency.value=f;fl.type='lowpass';fl.Q.value=6;
+  fl.frequency.setValueAtTime(900,t);fl.frequency.exponentialRampToValueAtTime(120,t+len);
+  g.gain.setValueAtTime(.34,t);g.gain.exponentialRampToValueAtTime(.001,t+len);
+  o.connect(fl);fl.connect(g);g.connect(master);o.start(t);o.stop(t+len+.05)}
+function pluck(t,f,acc){const o=ctx.createOscillator(),fl=ctx.createBiquadFilter(),g=ctx.createGain(),s=ctx.createGain();
+  o.type='sawtooth';o.frequency.value=f;fl.type='lowpass';fl.Q.value=3;
+  fl.frequency.setValueAtTime(3400,t);fl.frequency.exponentialRampToValueAtTime(500,t+.16);
+  g.gain.setValueAtTime(acc?.16:.09,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);s.gain.value=.55;
+  o.connect(fl);fl.connect(g);g.connect(master);g.connect(s);s.connect(delay);o.start(t);o.stop(t+.25)}
+function pad(t,root,ch,len){ch.slice(0,3).forEach((n,i)=>{[-6,6].forEach(det=>{
+  const o=ctx.createOscillator(),fl=ctx.createBiquadFilter(),g=ctx.createGain();
+  o.type='sawtooth';o.frequency.value=fr(root*4,n);o.detune.value=det;fl.type='lowpass';fl.frequency.value=900;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.035,t+len*.35);g.gain.linearRampToValueAtTime(.0001,t+len);
+  o.connect(fl);fl.connect(g);g.connect(master);o.start(t);o.stop(t+len+.05)})})}
+function play(s,t){
+  const bar=Math.floor(s/16)%4,b=s%16,r=ROOTS[bar],ch=CH[bar];
+  if(b%4===0)kick(t);
+  if(b===4||b===12)noise(t,.18,'bandpass',1800,.32);
+  if(b%4===2)noise(t,.06,'highpass',8000,.22);else if(b%2===1)noise(t,.03,'highpass',9500,.06);
+  if([2,6,10,14,7,15].includes(b))bass(t,r,S16*1.7);
+  if(b%2===0||b%8===5)pluck(t,fr(r*4,ch[SEQ[b%8]]),b%4===0);
+  if(b===0)pad(t,r,ch,S16*16);
+}
+function sched(){while(next<ctx.currentTime+.15){play(step,next);next+=S16;step=(step+1)%64}timer=setTimeout(sched,25)}
+function setVol(){if(ctx)master.gain.setTargetAtTime(on?parseFloat(vol.value)*.7:0,ctx.currentTime,.05)}
+btn.addEventListener('click',async()=>{
+  if(!ctx)init();
+  if(!on){await ctx.resume();on=true;step=0;next=ctx.currentTime+.08;sched();setVol();btn.textContent='♪ MÚSICA: ON';box.classList.add('on')}
+  else{on=false;setVol();clearTimeout(timer);setTimeout(()=>{if(!on)ctx.suspend()},400);btn.textContent='♪ MÚSICA: OFF';box.classList.remove('on')}
+});
+vol.addEventListener('input',setVol);
 })();
 </script>
 </body>
